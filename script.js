@@ -2,7 +2,7 @@
 document.addEventListener("DOMContentLoaded", function () {
 
     // -- Constante de API--
-    const API_URL = "https://localhost:3000/clientes"; //json-server endpoint
+    const API_URL = "http://localhost:3000/clientes"; //json-server endpoint
 
     // -- mascara do nome --
 
@@ -216,6 +216,35 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!nome) return alert("O nome é obrigatório.");
             if (!cpf || !validaCPF(cpf)) return alert("CPF inválido");
             if (data && !/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return alert("Data deve estar no formato dd/mm/aaaa");
+
+            // --- INÍCIO DO DESAFIO 1.1: VALIDAÇÃO DE CPF DUPLICADO ---
+            try {
+                console.log("1. Vai buscar na API o CPF:", cpf); // <-- Analise 1
+
+                // Busca clientes existentes para verificar duplicidade de CPF
+                const respostaBusca = await fetch(`${API_URL}?cpf=${cpf}`);
+                const clientesEncontrados = await respostaBusca.json();
+
+                console.log("2. O que a API respondeu?", clientesEncontrados); // <-- Analise 2
+
+                // Se o array voltar com algum item, esse CPF já existe no db.json
+                if (clientesEncontrados.length > 0) {
+                    const clienteExistente = clientesEncontrados[0];
+                    const idExistente = hiddenIdInput?.value;
+
+                    console.log("3. ID no Banco:", clienteExistente.id, "| ID no Form:", idExistente); // <-- Analise 3
+
+                    // Verifica se é uma tentativa de duplicata (ID diferente do que estamos editando, ou um novo cadastro)
+                    if (clienteExistente.id != idExistente) {
+                        console.error("4. CPF Duplicado detectado! Bloqueando salvamento."); // <-- Analise DE ERRO
+                        return alert("Erro: Este CPF já está cadastrado no sistema para outro cliente!");
+                    }
+                }
+            } catch (erroBusca) {
+                console.error("Erro ao verificar CPF duplicado:", erroBusca);
+                return alert("Erro ao verificar o CPF no servidor.");
+            }
+            // --- FIM DO DESAFIO 1.1 --- 
 
             // converter data para ISO (aaaa-mm-dd) se fornecida
             let dataISO = "";

@@ -3,22 +3,22 @@
         {
             "id": 1,
             "nome": "João Silva",
-            "cpf": "123.456.789-00",
-            "telefone": "(11) 98765-4321",
+            "cpf": "442.198.539-28",
+            "telefone": "(18) 99321-9218",
             "dataNascimento": "1990-01-01"
         },
         {
             "id": 2,
             "nome": "Maria Oliveira",
-            "cpf": "987.654.321-00",
-            "telefone": "(21) 91234-5678",
+            "cpf": "283.114.892-89",
+            "telefone": "(11) 97488-8554",
             "dataNascimento": "1985-05-15"
         },
         {
             "id": 3,
             "nome": "Carlos Santos",
-            "cpf": "456.789.123-00",
-            "telefone": "(31) 99876-5432",
+            "cpf": "195.085.655-00",
+            "telefone": "(16) 97567-5266",
             "dataNascimento": "1992-09-30"
         }
     ]
