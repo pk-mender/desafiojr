@@ -92,6 +92,16 @@ document.addEventListener("DOMContentLoaded", function () {
     if (clientesContainer) {
         // Função para buscar e exibir os clientes
         async function carregarClientes(filtros = {}) {
+
+            // --- INÍCIO DO LOADING (BUSCAR) ---
+            clientesContainer.innerHTML = `
+                <div class="table-row">
+                    <div class="col" style="grid-column: span 6; text-align: center; color: #666;">
+                        ⏳ Carregando clientes...
+                    </div>
+                </div>`;
+            // --- FIM DO LOADING ---
+
             try {
                 const params = new URLSearchParams();
                 if (filtros.nome) params.append("nome_like", filtros.nome);
@@ -154,7 +164,15 @@ document.addEventListener("DOMContentLoaded", function () {
             const btnExcluir = event.target.closest(".btn-excluir");
             if (btnExcluir) {
                 const id = btnExcluir.getAttribute("data-id");
-                if (confirm("CConfirma a exclusão do cliente?")) {
+                if (confirm("Confirma a exclusão do cliente?")) {
+
+                    // --- INÍCIO DO LOADING (EXCLUIR) ---
+                    const textoOriginal = btnExcluir.textContent;
+                    btnExcluir.textContent = "Excluindo...";
+                    btnExcluir.disabled = true;
+                    btnExcluir.style.cursor = "wait"; // Opcional: muda o cursor para indicar que está processando
+                    // --- FIM DO LOADING ---
+
                     try {
                         const resposta = await fetch(`${API_URL}/${id}`, { method: "DELETE" });
                         if (!resposta.ok) throw new Error("Falha ao excluir");
@@ -162,6 +180,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     } catch (error) {
                         console.error("Erro:", error);
                         alert("Erro ao excluir cliente.");
+
+                        // Se der erro, temos que voltar o botão ao normal
+                        btnExcluir.textContent = textoOriginal;
+                        btnExcluir.disabled = false;
+                        btnExcluir.style.cursor = "pointer"; // Opcional: volta o cursor ao normal
                     }
                 }
                 return; // evita cair na lógica de alterar
@@ -261,6 +284,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
             console.log("5. Tudo certo! Indo salvar no banco..."); // analise 5
 
+            // -- Desafio 2.1: Loading --
+
+            const textoOriginalBotao = btnSalvar.textContent;
+            btnSalvar.textContent = "SALVANDO...";
+            btnSalvar.disabled = true; // Desabilita o botão para evitar cliques múltiplos
+            btnSalvar.style.cursor = "wait"; // Opcional: muda o cursor para indicar que está processando
+
+            // Fim do loading
+
             // --- Desafio 1.1: VALIDAÇÃO DE CPF DUPLICADO ---
             try {
                 console.log("1. Vai buscar na API o CPF:", cpf); // <-- Analise 1
@@ -321,6 +353,11 @@ document.addEventListener("DOMContentLoaded", function () {
             } catch (error) {
                 alert("Falha ao salvar cliente. Verifique console");
                 console.error("Erro:", error);
+            } finally {
+                // Reset do loading (independente de sucesso ou falha)
+                btnSalvar.textContent = textoOriginalBotao;
+                btnSalvar.disabled = false;
+                btnSalvar.style.cursor = "pointer"; // Opcional: volta o cursor ao normal
             }
         });
     }
