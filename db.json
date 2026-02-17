@@ -44,6 +44,14 @@
       "telefone": "(11) 95479-8878",
       "dataNascimento": "",
       "id": 6
+    },
+    {
+      "nome": "Luiz Benício Gonçalves",
+      "email": "luiz_goncalves@usa.com",
+      "cpf": "868.564.020-23",
+      "telefone": "(96) 99305-1296",
+      "dataNascimento": "2000-10-10",
+      "id": 7
     }
   ]
 }

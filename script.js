@@ -64,6 +64,25 @@ document.addEventListener("DOMContentLoaded", function () {
             });
         }
 
+        
+    }
+
+    // --- Mascara de data de nascimento ---
+    const dataNascInput = document.getElementById("data-nascimento");
+    if (dataNascInput) {
+        dataNascInput.addEventListener("input", (event) => {
+            // remove tudo que não for número
+            let value = event.target.value.replace(/\D/g, "").substring(0, 8); // Limita a 8 dígitos (ddmmyyyy)
+            
+            // Aplicar as barras conforme o usuário digita
+            if (value.length > 4) { // dd/mm/aaaa
+                value = value.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+            } else if (value.length > 2) { // dd/mm
+                value = value.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+            }
+
+            event.target.value = value; // Atualiza o valor do campo com a máscara aplicada
+        });
     }
 
     // -- funções de clientes (apenas na pag principal ) --
@@ -206,6 +225,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
         btnSalvar.addEventListener("click", async () => {
+        console.log("1. O botão foi clicado!"); // analise 1
             const nomeCompletoInput = document.getElementById('nome');
             const emailInput = document.getElementById('email');
             const cpfCadastroInput = document.getElementById('cpf');
@@ -218,12 +238,30 @@ document.addEventListener("DOMContentLoaded", function () {
             const telefone = (telefoneCadastroInput?.value || '').trim();
             const data = (dataNascInput?.value || '').trim();
 
+            console.log("2. Pegou os dados. Data digitada:", data); // analise 2
+
+            // Validações básicas e obrigatórias
             if (!nome) return alert("O nome é obrigatório.");
             if (!email || !validaEmail(email)) return alert("Por favor, insira um email válido.");
             if (!cpf || !validaCPF(cpf)) return alert("CPF inválido");
-            if (data && !/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return alert("Data deve estar no formato dd/mm/aaaa");
+            if (!data) return alert("A data de nascimento é obrigatória."); 
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return alert("Data deve estar no formato dd/mm/aaaa");
 
-            // --- INÍCIO DO DESAFIO 1.1: VALIDAÇÃO DE CPF DUPLICADO ---
+            console.log("3. Passou pelas validações básicas! Indo calcular a idade..."); // analise 3
+
+            // --- Desafio 1.3: Verificar idade mínima de 18 anos ---
+            const idadeCalculada = calcularIdade(data);
+
+            console.log("4. A idade calculada foi:", idadeCalculada); // analise 4
+
+            if (idadeCalculada < 18) {
+                return alert("Cliente deve ter no mínimo 18 anos de idade para se cadastrar.");
+            }
+            // --- Fim do desafio 1.3 ---
+
+            console.log("5. Tudo certo! Indo salvar no banco..."); // analise 5
+
+            // --- Desafio 1.1: VALIDAÇÃO DE CPF DUPLICADO ---
             try {
                 console.log("1. Vai buscar na API o CPF:", cpf); // <-- Analise 1
 
@@ -340,4 +378,33 @@ function validaCPF(cpfString) {
 function validaEmail(email) {
     const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return regex.test(email);
+}
+
+/**
+ * Calculo de idade a partir da data de nascimento (dd/mm/aaaa)
+ */
+
+function calcularIdade(dataNascimentoBR) {
+    // mexer na string "dd/mm/aaaa" em um array: ["dd", "mm", "aaaa"]
+    const partes = dataNascimentoBR.split("/");
+    const dia = parseInt(partes[0], 10);
+    const mes = parseInt(partes[1], 10) - 1; // // O JavaScript conta os meses de 0 (Jan) a 11 (Dez)
+    const ano = parseInt(partes[2], 10);
+
+    const dataNascimento = new Date(ano, mes, dia);
+    const hoje = new Date();
+
+    // calcula a diferença bruta dos anos
+    let idade = hoje.getFullYear() - dataNascimento.getFullYear();
+
+    // Ajusta a idade se o aniversário ainda não ocorreu este ano
+    const mesAtual = hoje.getMonth();
+    const diaAtual = hoje.getDate();
+
+    
+    if (mesAtual < mes || (mesAtual === mes && diaAtual < dia )) {
+        idade--;
+    }
+
+    return idade;
 }
