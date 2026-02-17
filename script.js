@@ -108,7 +108,7 @@ document.addEventListener("DOMContentLoaded", function () {
             if (!lista.length) {
                 clientesContainer.innerHTML = `
                     <div class="table-row">
-                        <div class="col" style="grid-column: span 5; text-align: center;">
+                        <div class="col" style="grid-column: span 6; text-align: center;">
                             Nenhum cliente encontrado.
                         </div>
                     </div>`;
@@ -118,6 +118,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 return `
                     <div class="table-row">
                         <div class="col">${cliente.nome}</div>
+                        <div class="col">${cliente.email || '-'}</div>
                         <div class="col">${cliente.cpf}</div>
                         <div class="col">${formataDataISOparaBR(cliente.dataNascimento)}</div>
                         <div class="col">${cliente.telefone}</div>
@@ -177,10 +178,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (!resposta.ok) throw new Error("Cliente não encontrado");
                     const cliente = await resposta.json();
                     const nomeCompletoInput = document.getElementById('nome');
+                    const emailInput = document.getElementById('email');
                     const cpfCadastroInput = document.getElementById('cpf');
                     const telefoneCadastroInput = document.getElementById('telefone');
                     const dataNascInput = document.getElementById('data-nascimento');
                     if (nomeCompletoInput) nomeCompletoInput.value = cliente.nome || "";
+                    if (emailInput) emailInput.value = cliente.email || "";
                     if (cpfCadastroInput) cpfCadastroInput.value = cliente.cpf || "";
                     if (telefoneCadastroInput) telefoneCadastroInput.value = cliente.telefone || "";
                     if (dataNascInput) {
@@ -204,16 +207,19 @@ document.addEventListener("DOMContentLoaded", function () {
 
         btnSalvar.addEventListener("click", async () => {
             const nomeCompletoInput = document.getElementById('nome');
+            const emailInput = document.getElementById('email');
             const cpfCadastroInput = document.getElementById('cpf');
             const telefoneCadastroInput = document.getElementById('telefone');
             const dataNascInput = document.getElementById('data-nascimento');
 
             const nome = (nomeCompletoInput?.value || '').trim();
+            const email = (emailInput?.value || '').trim();
             const cpf = (cpfCadastroInput?.value || '').trim();
             const telefone = (telefoneCadastroInput?.value || '').trim();
             const data = (dataNascInput?.value || '').trim();
 
             if (!nome) return alert("O nome é obrigatório.");
+            if (!email || !validaEmail(email)) return alert("Por favor, insira um email válido.");
             if (!cpf || !validaCPF(cpf)) return alert("CPF inválido");
             if (data && !/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return alert("Data deve estar no formato dd/mm/aaaa");
 
@@ -253,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 dataISO = `${y}-${m}-${d}`;
             }
 
-            const payload = { nome, cpf, telefone, dataNascimento: dataISO };
+            const payload = { nome, email, cpf, telefone, dataNascimento: dataISO };
             const idExistente = hiddenIdInput?.value;
             const metodo = idExistente ? "PATCH" : "POST";
             const url = idExistente ? `${API_URL}/${idExistente}` : API_URL;
@@ -269,6 +275,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 if (!idExistente) {
                     // Limpa os campos para um novo cadastro
                     nomeCompletoInput.value = "";
+                    emailInput.value = "";
                     cpfCadastroInput.value = "";
                     telefoneCadastroInput.value = "";
                     dataNascInput.value = "";
@@ -325,4 +332,12 @@ function validaCPF(cpfString) {
 
     return true;
 
+}
+
+/**
+ * Valida email usando regex simples
+ */
+function validaEmail(email) {
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(email);
 }

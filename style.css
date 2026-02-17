@@ -73,7 +73,7 @@ body {
 .table-header, 
 .table-row{
     display: grid;
-    grid-template-columns: 2fr 1fr 1.5fr 1.5fr 2fr;
+    grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.5fr 1.5fr;
     border-bottom: 1px solid #ccc;
     background-color: #f9f9f9;
 }
