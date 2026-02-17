@@ -1,5 +1,5 @@
-<!-- index.html -->
 <!DOCTYPE html>
+
 <html lang="pt-br">
 
 <head>
@@ -18,7 +18,7 @@
         <div class="search-form">
             <div class="inputs-wrapper">
                 <div class="input-group">
-                    <label for="nome">Nome:</label>
+                    <label for="name">Nome:</label>
                     <input type="text" id="nome">
                 </div>
                 <div class="input-group">
@@ -28,7 +28,7 @@
             </div>
             <div class="button-group">
                 <button class="btn-buscar">BUSCAR</button>
-                <a class="btn-novo"  href="/novo_cliente.html" target="_blank">NOVO</a>
+                <a class="btn-novo" href="/novo_cliente.html" target="_blank">NOVO</a>
             </div>
         </div>
 
@@ -37,59 +37,11 @@
                 <div class="col col-nome">NOME</div>
                 <div class="col col-cpf">CPF</div>
                 <div class="col col-telefone">TELEFONE</div>
-                <div class="col col-data">DATA NASCIMENTO</div>
-                <div class="col col-acoes">AÇÕES</div>
+                <div class="col col-data-nascimento">DATA DE NASCIMENTO</div>
+                <div class="col col-acoes">AÇÔES</div>
             </div>
-
-            <div class="table-row">
-                <div class="col col-nome">José da Silva</div>
-                <div class="col col-cpf">111.111.111-00</div>
-                <div class="col col-telefone">(11) 9554-8331</div>
-                <div class="col col-data">14/02/2000</div>
-                <div class="col col-acoes">
-                    <button>ALTERAR</button>
-                    <button>EXCLUIR</button>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="col col-nome">José da Silva</div>
-                <div class="col col-cpf">111.111.111-00</div>
-                <div class="col col-telefone">(11) 9554-8331</div>
-                <div class="col col-data">14/02/2000</div>
-                <div class="col col-acoes">
-                    <button>ALTERAR</button>
-                    <button>EXCLUIR</button>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="col col-nome">José da Silva</div>
-                <div class="col col-cpf">111.111.111-00</div>
-                <div class="col col-telefone">(11) 9554-8331</div>
-                <div class="col col-data">14/02/2000</div>
-                <div class="col col-acoes">
-                    <button>ALTERAR</button>
-                    <button>EXCLUIR</button>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="col col-nome">José da Silva</div>
-                <div class="col col-cpf">111.111.111-00</div>
-                <div class="col col-telefone">(11) 9554-8331</div>
-                <div class="col col-data">14/02/2000</div>
-                <div class="col col-acoes">
-                    <button>ALTERAR</button>
-                    <button>EXCLUIR</button>
-                </div>
-            </div>
-            <div class="table-row">
-                <div class="col col-nome">José da Silva</div>
-                <div class="col col-cpf">111.111.111-00</div>
-                <div class="col col-telefone">(11) 9554-8331</div>
-                <div class="col col-data">14/02/2000</div>
-                <div class="col col-acoes">
-                    <button>ALTERAR</button>
-                    <button>EXCLUIR</button>
-                </div>
+            <div id="clientes-container" class="table-body">
+                <!-- Os clientes serão listados aqui dinamicamente via JavaScript -->
             </div>
         </main>
     </div>

@@ -1,0 +1,25 @@
+{
+    "clientes": [
+        {
+            "id": 1,
+            "nome": "João Silva",
+            "cpf": "123.456.789-00",
+            "telefone": "(11) 98765-4321",
+            "dataNascimento": "1990-01-01"
+        },
+        {
+            "id": 2,
+            "nome": "Maria Oliveira",
+            "cpf": "987.654.321-00",
+            "telefone": "(21) 91234-5678",
+            "dataNascimento": "1985-05-15"
+        },
+        {
+            "id": 3,
+            "nome": "Carlos Santos",
+            "cpf": "456.789.123-00",
+            "telefone": "(31) 99876-5432",
+            "dataNascimento": "1992-09-30"
+        }
+    ]
+}

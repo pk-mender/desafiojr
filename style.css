@@ -1,9 +1,8 @@
-/* style.css */
 body {
     font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
     margin: 0;
     padding: 20px;
-    background-color: #f0f0f0;
 }
 
 .container {
@@ -18,8 +17,7 @@ body {
     font-weight: normal;
     border-bottom: 1px solid #000;
     padding-bottom: 5px;
-    margin-top: 0;
-    margin-bottom: 20px;
+    margin-top: 20px;
 }
 
 .search-form {
@@ -30,7 +28,7 @@ body {
     align-items: end;
 }
 
-.inputs-wrapper {
+.input-wrapper {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -59,34 +57,33 @@ body {
     justify-content: flex-end;
 }
 
-.search-form button,
-.search-form a.btn-novo {
+.search-form button, .search-form a.btn-novo {
     padding: 8px 15px;
     border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
-    text-decoration: none; /* Remove o sublinhado do link */
-    color: #000; /* Garante que a cor do texto seja a padrão */
+    text-decoration: none;
+    color: #000;
 }
 
 .client-list {
     border: 1px solid #ccc;
 }
 
-.table-header,
-.table-row {
+.table-header, 
+.table-row{
     display: grid;
     grid-template-columns: 2fr 1fr 1.5fr 1.5fr 2fr;
     border-bottom: 1px solid #ccc;
     background-color: #f9f9f9;
 }
 
-.table-header {
+.table-header{
     background-color: #f0f0f0;
     font-weight: bold;
 }
 
-.table-row:nth-child(even) {
+.table-row:nth-child(even) { 
     background-color: #fefefe;
 }
 
@@ -98,7 +95,6 @@ body {
 .col:last-child {
     border-right: none;
 }
-
 .col-acoes {
     display: flex;
     gap: 5px;
@@ -111,14 +107,7 @@ body {
     cursor: pointer;
 }
 
-/*--------------------NOVO CLIENTE-------------------*/
-
-/* body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 20px;
-    background-color: #f0f0f0;
-} */
+/* Novo Cliente */
 
 .container-2 {
     background-color: #fff;
@@ -134,14 +123,14 @@ body {
     font-weight: normal;
     border-bottom: 1px solid #000;
     padding-bottom: 5px;
-    margin-top: 0;
+    margin-top: 0px;
     margin-bottom: 20px;
 }
 
 .register-form {
     display: flex;
     flex-direction: column;
-    gap: 15px;
+    gap: 10px;
     margin-bottom: 20px;
 }
 
@@ -158,7 +147,7 @@ body {
 
 .form-row input {
     flex-grow: 1;
-    border: 1px solid #000;
+    border: 1px solid #ccc;
     padding: 5px;
 }
 
@@ -170,13 +159,14 @@ body {
 
 .button-group button {
     padding: 8px 20px;
-    border: 1px solid #000;
+    border: 1px solid #ccc;
     background-color: #f0f0f0;
     cursor: pointer;
 }
 
-/* Estilo para campos com dados inválidos */
+/* dados invalidos */
+
 .invalid-input {
-    border-color: red !important;
+    border-color: red;
     background-color: #fff0f0;
 }
