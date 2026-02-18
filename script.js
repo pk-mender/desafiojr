@@ -52,11 +52,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Aviso de dados não salvos (Desafio 2.4)
     window.addEventListener('beforeunload', (event) => {
-        if (nomeInput && nomeInput.value.trim().length > 0 && !btnSalvar.disabled) {
-            event.preventDefault();
-            event.returnValue = '';
-        }
-    });
+    const nome = document.getElementById('nome')?.value.trim();
+    const email = document.getElementById('email')?.value.trim();
+
+    // Verificamos se há algo digitado E se o botão salvar não foi clicado
+    if ((nome || email) && typeof foiSalvo !== 'undefined' && !foiSalvo) {
+        event.preventDefault();
+        event.returnValue = ''; // Isso ativa o pop-up do navegador
+    }
+});
 
     // --- 2. LÓGICA DA TELA PRINCIPAL (LISTAGEM) ---
 
@@ -95,9 +99,9 @@ document.addEventListener("DOMContentLoaded", function () {
         // Eventos de Busca e Limpar
         if (botaoBuscar) {
             botaoBuscar.addEventListener("click", () => {
-                carregarClientes({ 
-                    nome: document.getElementById("nome").value.trim(), 
-                    cpf: document.getElementById("cpf").value.trim() 
+                carregarClientes({
+                    nome: document.getElementById("nome").value.trim(),
+                    cpf: document.getElementById("cpf").value.trim()
                 });
             });
         }
@@ -127,7 +131,10 @@ document.addEventListener("DOMContentLoaded", function () {
         carregarClientes(); // Carga inicial
     }
 
+
     // --- 3. LÓGICA DA TELA DE CADASTRO/EDIÇÃO ---
+
+    let foiSalvo = false; // Variável para controle de aviso de dados não salvos
 
     if (btnSalvar) {
         const params = new URLSearchParams(window.location.search);
@@ -186,7 +193,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
                 const [d, m, y] = data.split("/");
                 const payload = { nome, email, cpf, telefone: tel, dataNascimento: `${y}-${m}-${d}` };
-                
+
                 const metodo = editarId ? "PATCH" : "POST";
                 const url = editarId ? `${API_URL}/${editarId}` : API_URL;
 
@@ -197,7 +204,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 });
 
                 if (!resposta.ok) throw new Error();
-
+                foiSalvo = true; // Marca que os dados foram salvos para evitar aviso de dados não salvos
                 showToast(editarId ? "Atualizado!" : "Salvo!", "success");
 
                 // --- DESAFIO 2.4: NAVEGAÇÃO APÓS SALVAR ---
@@ -267,7 +274,7 @@ function showToast(mensagem, tipo = 'success') {
     toast.className = `toast toast-${tipo}`;
     toast.textContent = mensagem;
     container.appendChild(toast);
-    
+
     setTimeout(() => {
         toast.style.animation = 'fadeOut 0.5s forwards';
         toast.addEventListener('animationend', () => toast.remove());

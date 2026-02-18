@@ -1,36 +1,20 @@
 {
   "clientes": [
     {
-      "nome": "Luiz Benício Gonçalves",
-      "email": "luiz_goncalves@usa.com",
-      "cpf": "868.564.020-23",
-      "telefone": "(96) 99305-1296",
-      "dataNascimento": "2000-10-10",
-      "id": 7
-    },
-    {
-      "nome": "Bento Arthur das Neves",
-      "email": "bento_dasneves@iedi.com.br",
-      "cpf": "321.536.587-13",
-      "telefone": "(71) 99823-4689",
-      "dataNascimento": "1979-01-10",
-      "id": 8
-    },
-    {
-      "nome": "Marina Sophia da Luz",
-      "email": "marina_sophia_daluz@nhrtaxiaereo.com",
-      "cpf": "617.754.299-97",
-      "telefone": "(95) 98383-8195",
-      "dataNascimento": "2001-02-11",
-      "id": 9
-    },
-    {
-      "nome": "Sueli braba",
-      "email": "braba@uol.com",
-      "cpf": "029.225.168-81",
-      "telefone": "(11) 97896-5412",
+      "nome": "João Valdevino Neto",
+      "email": "joaovneto.ads@gmail.com",
+      "cpf": "422.154.548-81",
+      "telefone": "(11) 95479-8878",
       "dataNascimento": "2000-02-29",
-      "id": 10
+      "id": 1
+    },
+    {
+      "nome": "Mender pk",
+      "email": "pkpkrock9@gmail.com",
+      "cpf": "002.050.926-08",
+      "telefone": "(11) 95479-8878",
+      "dataNascimento": "2000-02-29",
+      "id": 2
     }
   ]
 }
