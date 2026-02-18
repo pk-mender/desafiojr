@@ -53,8 +53,8 @@ function renderClientes(lista) {
             <div class="col">${c.nome}</div>
             <div class="col">${c.email || '-'}</div>
             <div class="col">${c.cpf}</div>
-            <div class="col">${formataDataISOparaBR(c.dataNascimento)}</div>
             <div class="col">${c.telefone}</div>
+            <div class="col">${formataDataISOparaBR(c.dataNascimento)}</div>
             <div class="col">
                 <a href="novo_cliente.html?id=${c.id}" class="btn-editar">Editar</a>
                 <button data-id="${c.id}" class="btn-excluir">Excluir</button>
