@@ -40,6 +40,22 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
+    // Máscara de CEP e busca automática
+
+    const cepInput = document.getElementById("cep");
+    if (cepInput) {
+        cepInput.addEventListener("input", (e) => {
+            let val = e.target.value.replace(/\D/g, ""); // Remove letras
+            if (val.length > 5) val = val.replace(/^(\d{5})(\d)/, "$1-$2"); // Põe o hífen
+            e.target.value = val.substring(0, 9); // Limita tamanho
+
+            // Se digitou os 8 números, chama a função de busca
+            if (val.replace("-", "").length === 8) {
+                buscarCEP(e.target.value);
+            }
+        });
+    }
+
     const dataNascInput = document.getElementById("data-nascimento");
     if (dataNascInput) {
         dataNascInput.addEventListener("input", (e) => {
@@ -52,15 +68,15 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Aviso de dados não salvos (Desafio 2.4)
     window.addEventListener('beforeunload', (event) => {
-    const nome = document.getElementById('nome')?.value.trim();
-    const email = document.getElementById('email')?.value.trim();
+        const nome = document.getElementById('nome')?.value.trim();
+        const email = document.getElementById('email')?.value.trim();
 
-    // Verificamos se há algo digitado E se o botão salvar não foi clicado
-    if ((nome || email) && typeof foiSalvo !== 'undefined' && !foiSalvo) {
-        event.preventDefault();
-        event.returnValue = ''; // Isso ativa o pop-up do navegador
-    }
-});
+        // Verificamos se há algo digitado E se o botão salvar não foi clicado
+        if ((nome || email) && typeof foiSalvo !== 'undefined' && !foiSalvo) {
+            event.preventDefault();
+            event.returnValue = ''; // Isso ativa o pop-up do navegador
+        }
+    });
 
     // --- 2. LÓGICA DA TELA PRINCIPAL (LISTAGEM) ---
 
@@ -279,4 +295,30 @@ function showToast(mensagem, tipo = 'success') {
         toast.style.animation = 'fadeOut 0.5s forwards';
         toast.addEventListener('animationend', () => toast.remove());
     }, 3000);
+}
+
+async function buscarCEP(cep) {
+    const valor = cep.replace(/\D/g, "");
+    const url = `https://viacep.com.br/ws/${valor}/json/`;
+    
+    showToast("Buscando endereço...", "info");
+
+    try {
+        const resposta = await fetch(url);
+        const dados = await resposta.json();
+
+        if (dados.erro) {
+            showToast("CEP não encontrado.", "error");
+            // Limpa campos se o CEP der erro
+            ["logradouro", "bairro", "cidade", "estado"].forEach(id => document.getElementById(id).value = "");
+        } else {
+            document.getElementById("logradouro").value = dados.logradouro;
+            document.getElementById("bairro").value = dados.bairro;
+            document.getElementById("cidade").value = dados.localidade;
+            document.getElementById("estado").value = dados.uf;
+            document.getElementById("numero").focus(); // Joga o cursor para o número
+        }
+    } catch (error) {
+        showToast("Erro ao buscar CEP.", "error");
+    }
 }
