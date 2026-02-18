@@ -1,293 +1,301 @@
-// script.js
+/**
+ * 1. CONFIGURAÇÕES E ESTADO GLOBAL
+ */
 const API_URL = "http://localhost:3000/clientes";
 let paginaAtual = 1;
 let limitePorPagina = 10;
 let totalDeClientes = 0;
-let foiSalvo = false; // Variável para controle de aviso de dados não salvos
+let colunaOrdenacao = "nome";
+let ordemDirecao = "asc";
+let foiSalvo = false; // Controle para o aviso de "dados não salvos"
 
+/**
+ * 2. FUNÇÕES DE LISTAGEM (Página Inicial)
+ */
+
+async function carregarClientes() {
+    const container = document.getElementById("clientes-container");
+    if (!container) return;
+
+    container.innerHTML = "⏳ Carregando...";
+
+    try {
+        const params = new URLSearchParams();
+        params.append("_page", paginaAtual);
+        params.append("_limit", limitePorPagina);
+        params.append("_sort", colunaOrdenacao);
+        params.append("_order", ordemDirecao);
+
+        const filtroNome = document.getElementById("nome")?.value.trim();
+        const filtroCpf = document.getElementById("cpf")?.value.trim();
+        
+        if (filtroNome) params.append("nome_like", filtroNome);
+        if (filtroCpf) params.append("cpf", filtroCpf);
+
+        const resposta = await fetch(`${API_URL}?${params.toString()}`);
+        totalDeClientes = parseInt(resposta.headers.get("X-Total-Count")) || 0;
+
+        const dados = await resposta.json();
+        renderClientes(dados);
+        atualizarControlesPaginacao();
+        atualizarIconesOrdenacao();
+    } catch (error) {
+        showToast("Erro ao carregar lista.", "error");
+    }
+}
+
+function renderClientes(lista) {
+    const container = document.getElementById("clientes-container");
+    if (!container) return;
+
+    container.innerHTML = lista.length ? lista.map(c => `
+        <div class="table-row">
+            <div class="col">${c.nome}</div>
+            <div class="col">${c.email || '-'}</div>
+            <div class="col">${c.cpf}</div>
+            <div class="col">${formataDataISOparaBR(c.dataNascimento)}</div>
+            <div class="col">${c.telefone}</div>
+            <div class="col">
+                <a href="novo_cliente.html?id=${c.id}" class="btn-editar">Editar</a>
+                <button data-id="${c.id}" class="btn-excluir">Excluir</button>
+            </div>
+        </div>`).join("") : `<div class="table-row"><div class="col" style="grid-column: span 6; text-align: center;">Nenhum cliente encontrado.</div></div>`;
+}
+
+/**
+ * 3. INICIALIZAÇÃO E EVENTOS (DOM CONTENT LOADED)
+ */
 
 document.addEventListener("DOMContentLoaded", function () {
+    
+    // Elementos comuns
+    const btnBuscar = document.getElementById("btn-buscar");
+    const btnLimpar = document.getElementById("btn-limpar");
+    const btnSalvar = document.querySelector(".btn-salvar");
+    const containerTabela = document.getElementById("clientes-container");
 
-    // --- SELETORES GERAIS ---
-    const clientesContainer = document.getElementById("clientes-container");
-    const botaoBuscar = document.querySelector(".btn-buscar");
-    const btnLimpar = document.getElementById('btn-limpar');
-    const btnSalvar = document.querySelector('.btn-salvar');
+    // Ativa todas as máscaras de input (independente da página)
+    configurarMascaras();
 
-    // --- 1. MÁSCARAS E VALIDAÇÕES VISUAIS ---
+    // --- LÓGICA DA PÁGINA DE LISTAGEM ---
+    if (containerTabela) {
+        carregarClientes();
 
-    const nomeInput = document.getElementById("nome");
-    if (nomeInput) {
-        nomeInput.addEventListener("input", (e) => {
-            e.target.value = e.target.value.replace(/[^A-Za-zÀ-ÿ '-]/g, "");
-        });
-    }
-
-    const cpfInput = document.getElementById("cpf");
-    if (cpfInput) {
-        cpfInput.addEventListener("input", (e) => {
-            let val = e.target.value.replace(/\D/g, "").substring(0, 11);
-            if (val.length > 9) val = val.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
-            else if (val.length > 6) val = val.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
-            else if (val.length > 3) val = val.replace(/(\d{3})(\d{1,3})/, "$1.$2");
-            e.target.value = val;
-        });
-    }
-
-    const telefoneInput = document.getElementById("telefone");
-    if (telefoneInput) {
-        telefoneInput.addEventListener("input", (e) => {
-            let val = e.target.value.replace(/\D/g, "").substring(0, 11);
-            if (val.length > 10) val = val.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
-            else if (val.length > 5) val = val.replace(/(\d{2})(\d{4})(\d{1,4})/, "($1) $2-$3");
-            else if (val.length > 2) val = val.replace(/(\d{2})(\d{1,4})/, "($1) $2");
-            else if (val.length > 0) val = val.replace(/(\d{1,2})/, "($1");
-            e.target.value = val;
-        });
-    }
-
-    // Máscara de CEP e busca automática
-
-    const cepInput = document.getElementById("cep");
-    if (cepInput) {
-        cepInput.addEventListener("input", (e) => {
-            let val = e.target.value.replace(/\D/g, ""); // Remove letras
-            if (val.length > 5) val = val.replace(/^(\d{5})(\d)/, "$1-$2"); // Põe o hífen
-            e.target.value = val.substring(0, 9); // Limita tamanho
-
-            // Se digitou os 8 números, chama a função de busca
-            if (val.replace("-", "").length === 8) {
-                buscarCEP(e.target.value);
-            }
-        });
-    }
-
-    const dataNascInput = document.getElementById("data-nascimento");
-    if (dataNascInput) {
-        dataNascInput.addEventListener("input", (e) => {
-            let val = e.target.value.replace(/\D/g, "").substring(0, 8);
-            if (val.length > 4) val = val.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
-            else if (val.length > 2) val = val.replace(/(\d{2})(\d{1,2})/, "$1/$2");
-            e.target.value = val;
-        });
-    }
-
-    // Aviso de dados não salvos (Desafio 2.4)
-    window.addEventListener('beforeunload', (event) => {
-        const nome = document.getElementById('nome')?.value.trim();
-        const email = document.getElementById('email')?.value.trim();
-
-        // Verificamos se há algo digitado E se o botão salvar não foi clicado
-        if ((nome || email) && typeof foiSalvo !== 'undefined' && !foiSalvo) {
-            event.preventDefault();
-            event.returnValue = ''; // Isso ativa o pop-up do navegador
-        }
-    });
-
-    // --- 2. LÓGICA DA TELA PRINCIPAL (LISTAGEM) ---
-
-    if (clientesContainer) {
-        async function carregarClientes(filtros = {}) {
-            clientesContainer.innerHTML = "Carregando...";
-
-            try {
-                const params = new URLSearchParams();
-                // Paginação do JSON SERVER
-                params.append("_page", paginaAtual);
-                params.append("_limit", limitePorPagina);
-
-                if (filtros.nome) params.append("nome_like", filtros.nome);
-                if (filtros.cpf) params.append("cpf", filtros.cpf);
-
-                const url = `${API_URL}?${params.toString()}`;
-                const resposta = await fetch(url);
-
-                // Critério de aceite: Total de registros
-                // O json-server envia o total no cabeçalho 'X-Total-Count'
-                totalDeClientes = resposta.headers.get("X-Total-Count");
-
-                const dados = await resposta.json();
-                renderClientes(dados);
-                atualizarControlesPaginacao();
-            } catch (error) {
-                showToast("Erro ao carregar lista.", "error");
-            }
-        }
-
-        document.getElementById("btn-anterior").addEventListener("click", () => {
-            if (paginaAtual > 1) {
-                paginaAtual--;
-                carregarClientes();
-            }
+        btnBuscar?.addEventListener("click", () => {
+            paginaAtual = 1;
+            carregarClientes();
         });
 
-        document.getElementById("btn-proximo").addEventListener("click", () => {
-            const totalPaginas = Math.ceil(totalDeClientes / limitePorPagina);
-            if (paginaAtual < totalPaginas) {
+        btnLimpar?.addEventListener("click", () => {
+            document.getElementById("nome").value = "";
+            document.getElementById("cpf").value = "";
+            paginaAtual = 1;
+            carregarClientes();
+        });
+
+        document.getElementById("btn-anterior")?.addEventListener("click", () => {
+            if (paginaAtual > 1) { paginaAtual--; carregarClientes(); }
+        });
+
+        document.getElementById("btn-proximo")?.addEventListener("click", () => {
+            if (paginaAtual < Math.ceil(totalDeClientes / limitePorPagina)) {
                 paginaAtual++;
                 carregarClientes();
             }
         });
 
-        function atualizarControlesPaginacao() {
-            const totalPaginas = Math.ceil(totalDeClientes / limitePorPagina) || 1;
-            document.getElementById("info-paginas").textContent = `Página ${paginaAtual} de ${totalPaginas} (${totalDeClientes} registros)`;
-
-            // Critério de aceite: Desabilitar botões nos limites
-            document.getElementById("btn-anterior").disabled = (paginaAtual === 1);
-            document.getElementById("btn-proximo").disabled = (paginaAtual === totalPaginas);
-        }
-
-        function renderClientes(lista) {
-            clientesContainer.innerHTML = lista.length ? lista.map(c => `
-                <div class="table-row">
-                    <div class="col">${c.nome}</div>
-                    <div class="col">${c.email || '-'}</div>
-                    <div class="col">${c.cpf}</div>
-                    <div class="col">${formataDataISOparaBR(c.dataNascimento)}</div>
-                    <div class="col">${c.telefone}</div>
-                    <div class="col">
-                        <a href="novo_cliente.html?id=${c.id}" class="btn-editar">Editar</a>
-                        <button data-id="${c.id}" class="btn-excluir">Excluir</button>
-                    </div>
-                </div>`).join("") : `<div class="table-row"><div class="col" style="grid-column: span 6; text-align: center;">Nenhum cliente encontrado.</div></div>`;
-        }
-
-        // Eventos de Busca e Limpar
-        if (botaoBuscar) {
-            botaoBuscar.addEventListener("click", () => {
-                paginaAtual = 1; // RESET OBRIGATÓRIO AQUI
-                carregarClientes({
-                    nome: document.getElementById("nome").value.trim(),
-                    cpf: document.getElementById("cpf").value.trim()
-                });
-            });
-        }
-
-        if (btnLimpar) {
-            btnLimpar.addEventListener("click", () => {
-                document.getElementById("nome").value = "";
-                document.getElementById("cpf").value = "";
+        containerTabela.addEventListener("click", async (e) => {
+            const btn = e.target.closest(".btn-excluir");
+            if (btn && confirm("Excluir este cliente?")) {
+                await fetch(`${API_URL}/${btn.dataset.id}`, { method: "DELETE" });
                 carregarClientes();
-                showToast("Filtros removidos", "info");
-            });
-        }
-
-        // Evento de Excluir
-        clientesContainer.addEventListener("click", async (e) => {
-            const btnExcluir = e.target.closest(".btn-excluir");
-            if (btnExcluir && confirm("Confirma a exclusão?")) {
-                const id = btnExcluir.getAttribute("data-id");
-                try {
-                    await fetch(`${API_URL}/${id}`, { method: "DELETE" });
-                    carregarClientes();
-                    showToast("Excluído!", "success");
-                } catch (err) { showToast("Erro ao excluir", "error"); }
+                showToast("Excluído com sucesso!", "success");
             }
         });
-
-        carregarClientes(); // Carga inicial
     }
 
-
-    // --- 3. LÓGICA DA TELA DE CADASTRO/EDIÇÃO ---
-
+    // --- LÓGICA DA PÁGINA DE CADASTRO/EDIÇÃO ---
     if (btnSalvar) {
-        const params = new URLSearchParams(window.location.search);
-        const editarId = params.get("id");
-        const hiddenIdInput = document.getElementById('cliente-id');
+        verificarEdicao(); // Verifica se há ID na URL para preencher os campos
 
-        // Se for edição, busca os dados
-        if (editarId) {
-            (async () => {
-                try {
-                    const res = await fetch(`${API_URL}/${editarId}`);
-                    const c = await res.json();
-                    document.getElementById('nome').value = c.nome;
-                    document.getElementById('email').value = c.email;
-                    document.getElementById('cpf').value = c.cpf;
-                    document.getElementById('telefone').value = c.telefone;
-                    if (c.dataNascimento) {
-                        const [y, m, d] = c.dataNascimento.split("-");
-                        document.getElementById('data-nascimento').value = `${d}/${m}/${y}`;
-                    }
-                    hiddenIdInput.value = c.id;
-                    document.querySelector('header h1').textContent = "Editar Cliente";
-                    btnSalvar.textContent = "ATUALIZAR";
-                } catch (e) { showToast("Erro ao carregar cliente", "error"); }
-            })();
-        }
+        btnSalvar.addEventListener("click", salvarCliente);
 
-        btnSalvar.addEventListener("click", async () => {
-            const nome = document.getElementById('nome').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const cpf = document.getElementById('cpf').value.trim();
-            const tel = document.getElementById('telefone').value.trim();
-            const data = document.getElementById('data-nascimento').value.trim();
-
-            if (!nome || !validaEmail(email) || !validaCPF(cpf) || !data) {
-                return showToast("Preencha os campos corretamente", "error");
-            }
-
-            if (calcularIdade(data) < 18) {
-                return showToast("Mínimo 18 anos.", "error");
-            }
-
-            // Início do processo de salvar
-            btnSalvar.textContent = "SALVANDO...";
-            btnSalvar.disabled = true;
-
-            try {
-                // Validação de CPF Duplicado
-                const resBusca = await fetch(`${API_URL}?cpf=${cpf}`);
-                const encontrados = await resBusca.json();
-                if (encontrados.length > 0 && encontrados[0].id != hiddenIdInput.value) {
-                    btnSalvar.disabled = false;
-                    btnSalvar.textContent = editarId ? "ATUALIZAR" : "SALVAR";
-                    return showToast("CPF já cadastrado!", "error");
-                }
-
-                const [d, m, y] = data.split("/");
-                const payload = { nome, email, cpf, telefone: tel, dataNascimento: `${y}-${m}-${d}` };
-
-                const metodo = editarId ? "PATCH" : "POST";
-                const url = editarId ? `${API_URL}/${editarId}` : API_URL;
-
-                const resposta = await fetch(url, {
-                    method: metodo,
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload)
-                });
-
-                if (!resposta.ok) throw new Error();
-                foiSalvo = true; // Marca que os dados foram salvos para evitar aviso de dados não salvos
-                showToast(editarId ? "Atualizado!" : "Salvo!", "success");
-
-                // --- DESAFIO 2.4: NAVEGAÇÃO APÓS SALVAR ---
-                setTimeout(() => {
-                    const acao = confirm("Sucesso!\n\nOK: Voltar para a lista\nCancelar: Cadastrar outro");
-                    if (acao) {
-                        window.location.href = "index.html";
-                    } else {
-                        if (!editarId) {
-                            ["nome", "email", "cpf", "telefone", "data-nascimento"].forEach(id => document.getElementById(id).value = "");
-                        } else {
-                            window.location.href = "novo_cliente.html";
-                        }
-                    }
-                }, 500);
-
-            } catch (error) {
-                showToast("Erro ao salvar", "error");
-            } finally {
-                btnSalvar.textContent = editarId ? "ATUALIZAR" : "SALVAR";
-                btnSalvar.disabled = false;
+        // Aviso de dados não salvos ao fechar a aba
+        window.addEventListener('beforeunload', (e) => {
+            const temConteudo = document.getElementById('nome')?.value.trim() || document.getElementById('email')?.value.trim();
+            if (temConteudo && !foiSalvo) {
+                e.preventDefault();
+                e.returnValue = '';
             }
         });
     }
 });
 
-// --- FUNÇÕES AUXILIARES (FORA DO DOMCONTENTLOADED) ---
+/**
+ * 4. FUNÇÕES DE CADASTRO E VALIDAÇÃO
+ */
+
+async function salvarCliente() {
+    const idHidden = document.getElementById('cliente-id').value;
+    const dados = {
+        nome: document.getElementById('nome').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        cpf: document.getElementById('cpf').value.trim(),
+        telefone: document.getElementById('telefone').value.trim(),
+        dataNascimento: converterDataParaISO(document.getElementById('data-nascimento').value)
+    };
+
+    // Validações básicas
+    if (!dados.nome || !validaEmail(dados.email) || !validaCPF(dados.cpf)) {
+        return showToast("Preencha os campos corretamente!", "error");
+    }
+
+    // Validação de Idade (Mínimo 18 anos)
+    if (calcularIdade(document.getElementById('data-nascimento').value) < 18) {
+        return showToast("O cliente deve ter pelo menos 18 anos.", "error");
+    }
+
+    try {
+        const metodo = idHidden ? "PATCH" : "POST";
+        const url = idHidden ? `${API_URL}/${idHidden}` : API_URL;
+
+        const res = await fetch(url, {
+            method: metodo,
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(dados)
+        });
+
+        if (res.ok) {
+            foiSalvo = true;
+            showToast("Dados salvos com sucesso!", "success");
+            setTimeout(() => window.location.href = "index.html", 1500);
+        }
+    } catch (e) {
+        showToast("Erro ao salvar dados.", "error");
+    }
+}
+
+// Preenche o formulário se for uma edição
+async function verificarEdicao() {
+    const params = new URLSearchParams(window.location.search);
+    const id = params.get("id");
+    if (id) {
+        const res = await fetch(`${API_URL}/${id}`);
+        const c = await res.json();
+        document.getElementById('cliente-id').value = c.id;
+        document.getElementById('nome').value = c.nome;
+        document.getElementById('email').value = c.email;
+        document.getElementById('cpf').value = c.cpf;
+        document.getElementById('telefone').value = c.telefone;
+        document.getElementById('data-nascimento').value = formataDataISOparaBR(c.dataNascimento);
+        document.querySelector('h1').textContent = "EDITAR CLIENTE";
+    }
+}
+
+/**
+ * 5. MÁSCARAS E UTILITÁRIOS
+ */
+
+function configurarMascaras() {
+    // --- MÁSCARA DE NOME (Impede números e caracteres especiais) ---
+    const nomeInput = document.getElementById("nome");
+    if (nomeInput) {
+        nomeInput.addEventListener("input", (e) => {
+            // Remove tudo que NÃO for letra, espaço, hífen ou apóstrofo
+            e.target.value = e.target.value.replace(/[^A-Za-zÀ-ÿ '-]/g, "");
+        });
+    }
+
+    // --- MÁSCARA CPF ---
+    const cpfInput = document.getElementById("cpf");
+    if (cpfInput) {
+        cpfInput.addEventListener("input", (e) => {
+            let v = e.target.value.replace(/\D/g, "").substring(0, 11);
+            if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, "$1.$2.$3-$4");
+            else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/, "$1.$2.$3");
+            else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/, "$1.$2");
+            e.target.value = v;
+        });
+    }
+
+    // --- MÁSCARA TELEFONE ---
+    const telInput = document.getElementById("telefone");
+    if (telInput) {
+        telInput.addEventListener("input", (e) => {
+            let v = e.target.value.replace(/\D/g, "").substring(0, 11);
+            if (v.length > 10) v = v.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+            else if (v.length > 5) v = v.replace(/(\d{2})(\d{4})(\d{1,4})/, "($1) $2-$3");
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,4})/, "($1) $2");
+            else if (v.length > 0) v = v.replace(/(\d{1,2})/, "($1");
+            e.target.value = v;
+        });
+    }
+
+    // --- MÁSCARA DATA ---
+    const dataInput = document.getElementById("data-nascimento");
+    if (dataInput) {
+        dataInput.addEventListener("input", (e) => {
+            let v = e.target.value.replace(/\D/g, "").substring(0, 8);
+            if (v.length > 4) v = v.replace(/(\d{2})(\d{2})(\d{1,4})/, "$1/$2/$3");
+            else if (v.length > 2) v = v.replace(/(\d{2})(\d{1,2})/, "$1/$2");
+            e.target.value = v;
+        });
+    }
+
+    // --- MÁSCARA CEP + BUSCA AUTOMÁTICA ---
+    const cepInput = document.getElementById("cep");
+    if (cepInput) {
+        cepInput.addEventListener("input", (e) => {
+            let v = e.target.value.replace(/\D/g, "").substring(0, 8);
+            if (v.length > 5) v = v.replace(/^(\d{5})(\d)/, "$1-$2");
+            e.target.value = v;
+
+            if (v.length === 9) { // 8 números + 1 hífen
+                buscarCEP(v.replace("-", ""));
+            }
+        });
+    }
+}
+
+async function buscarCEP(val) {
+    try {
+        const res = await fetch(`https://viacep.com.br/ws/${val}/json/`);
+        const d = await res.json();
+        if (!d.erro) {
+            document.getElementById("logradouro").value = d.logradouro;
+            document.getElementById("bairro").value = d.bairro;
+            document.getElementById("cidade").value = d.localidade;
+            document.getElementById("estado").value = d.uf;
+            document.getElementById("numero").focus();
+        }
+    } catch (e) { showToast("CEP não encontrado", "info"); }
+}
+
+// --- AJUDANTES DE VALIDAÇÃO ---
+
+function validaEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function validaCPF(cpf) {
+    cpf = cpf.replace(/\D/g, "");
+    return cpf.length === 11; // Validação simplificada para o exemplo
+}
+
+function calcularIdade(dataBR) {
+    if (!dataBR) return 0;
+    const [d, m, y] = dataBR.split("/").map(Number);
+    const hoje = new Date();
+    const nasc = new Date(y, m - 1, d);
+    let idade = hoje.getFullYear() - nasc.getFullYear();
+    if (hoje.getMonth() < nasc.getMonth() || (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())) idade--;
+    return idade;
+}
+
+function converterDataParaISO(dataBR) {
+    const [d, m, y] = dataBR.split("/");
+    return `${y}-${m}-${d}`;
+}
 
 function formataDataISOparaBR(iso) {
     if (!iso || !iso.includes("-")) return iso;
@@ -295,70 +303,43 @@ function formataDataISOparaBR(iso) {
     return `${d}/${m}/${y}`;
 }
 
-function validaCPF(cpfString) {
-    const cpf = cpfString.replace(/\D/g, "");
-    if (cpf.length !== 11 || /^(\d)\1{10}$/.test(cpf)) return false;
-    let soma = 0, resto;
-    for (let i = 1; i <= 9; i++) soma += parseInt(cpf.substring(i - 1, i)) * (11 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    if (resto !== parseInt(cpf.substring(9, 10))) return false;
-    soma = 0;
-    for (let i = 1; i <= 10; i++) soma += parseInt(cpf.substring(i - 1, i)) * (12 - i);
-    resto = (soma * 10) % 11;
-    if ((resto === 10) || (resto === 11)) resto = 0;
-    return resto === parseInt(cpf.substring(10, 11));
-}
-
-function validaEmail(email) {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function calcularIdade(dataBR) {
-    const [d, m, y] = dataBR.split("/").map(Number);
-    const nasc = new Date(y, m - 1, d);
-    const hoje = new Date();
-    let idade = hoje.getFullYear() - nasc.getFullYear();
-    if (hoje.getMonth() < nasc.getMonth() || (hoje.getMonth() === nasc.getMonth() && hoje.getDate() < nasc.getDate())) idade--;
-    return idade;
-}
-
-function showToast(mensagem, tipo = 'success') {
+function showToast(msg, tipo) {
     const container = document.getElementById('toast-container');
     if (!container) return;
     const toast = document.createElement('div');
     toast.className = `toast toast-${tipo}`;
-    toast.textContent = mensagem;
+    toast.textContent = msg;
     container.appendChild(toast);
-
-    setTimeout(() => {
-        toast.style.animation = 'fadeOut 0.5s forwards';
-        toast.addEventListener('animationend', () => toast.remove());
-    }, 3000);
+    setTimeout(() => toast.remove(), 3000);
 }
 
-async function buscarCEP(cep) {
-    const valor = cep.replace(/\D/g, "");
-    const url = `https://viacep.com.br/ws/${valor}/json/`;
-
-    showToast("Buscando endereço...", "info");
-
-    try {
-        const resposta = await fetch(url);
-        const dados = await resposta.json();
-
-        if (dados.erro) {
-            showToast("CEP não encontrado.", "error");
-            // Limpa campos se o CEP der erro
-            ["logradouro", "bairro", "cidade", "estado"].forEach(id => document.getElementById(id).value = "");
-        } else {
-            document.getElementById("logradouro").value = dados.logradouro;
-            document.getElementById("bairro").value = dados.bairro;
-            document.getElementById("cidade").value = dados.localidade;
-            document.getElementById("estado").value = dados.uf;
-            document.getElementById("numero").focus(); // Joga o cursor para o número
-        }
-    } catch (error) {
-        showToast("Erro ao buscar CEP.", "error");
+// Ordenação (Chamada pelo onclick no HTML)
+function definirOrdenacao(coluna) {
+    if (colunaOrdenacao === coluna) {
+        ordemDirecao = ordemDirecao === "asc" ? "desc" : "asc";
+    } else {
+        colunaOrdenacao = coluna;
+        ordemDirecao = "asc";
     }
+    paginaAtual = 1;
+    carregarClientes();
+}
+
+function atualizarIconesOrdenacao() {
+    const colunas = ["nome", "email", "cpf", "telefone", "dataNascimento"];
+    colunas.forEach(c => {
+        const el = document.getElementById(`sort-${c}`);
+        if (el) el.innerHTML = "";
+    });
+    const ativo = document.getElementById(`sort-${colunaOrdenacao}`);
+    if (ativo) ativo.innerHTML = ordemDirecao === "asc" ? " ▲" : " ▼";
+}
+
+function atualizarControlesPaginacao() {
+    const info = document.getElementById("info-paginas");
+    if (!info) return;
+    const totalPaginas = Math.ceil(totalDeClientes / limitePorPagina) || 1;
+    info.textContent = `Página ${paginaAtual} de ${totalPaginas} (${totalDeClientes} registros)`;
+    document.getElementById("btn-anterior").disabled = (paginaAtual === 1);
+    document.getElementById("btn-proximo").disabled = (paginaAtual === totalPaginas || totalDeClientes == 0);
 }

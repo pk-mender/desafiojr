@@ -37,12 +37,20 @@
 
         <main class="client-list">
             <div class="table-header">
-                <div class="col col-nome">NOME</div>
-                <div class="col col-email">EMAIL</div>
-                <div class="col col-cpf">CPF</div>
-                <div class="col col-telefone">TELEFONE</div>
-                <div class="col col-data-nascimento">DATA DE NASCIMENTO</div>
-                <div class="col col-acoes">AÇÔES</div>
+                <div class="col col-nome" onclick="definirOrdenacao('nome')" style="cursor:pointer">
+                    NOME<span id="sort-nome"></span>
+                </div>
+                <div class="col col-email" onclick="definirOrdenacao('email')" style="cursor:pointer">
+                    EMAIL<span id="sort-email"></span></div>
+                <div class="col col-cpf" onclick="definirOrdenacao('cpf')" style="cursor:pointer">
+                    CPF<span id="sort-cpf"></span></div>
+                <div class="col col-telefone" onclick="definirOrdenacao('telefone')" style="cursor:pointer">
+                    TELEFONE<span id="sort-telefone"></span>
+                </div>
+                <div class="col col-data-nascimento" onclick="definirOrdenacao('dataNascimento')" style="cursor:pointer">
+                    DATA NASC. <span id="sort-dataNascimento"></span>
+                </div>
+                <div class="col col-acoes">AÇÕES</div>
             </div>
             <div id="clientes-container" class="table-body">
                 <!-- Os clientes serão listados aqui dinamicamente via JavaScript -->

@@ -186,6 +186,12 @@ body {
     font-weight: bold;
 }
 
+.table-header .col span {
+    margin-left: 5px;
+    font-size: 10px;
+    color: #3498db; /* Um azul para destacar */
+}
+
 /* Estilo para o botão Limpar */
 .btn-limpar {
     background-color: #e0e0e0;
