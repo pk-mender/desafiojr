@@ -170,3 +170,47 @@ body {
     border-color: red;
     background-color: #fff0f0;
 }
+
+/* Container que segura as notificações */
+#toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+}
+
+/* Base da notificação */
+.toast {
+    min-width: 250px;
+    padding: 15px 20px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    color: white;
+    font-weight: bold;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    animation: slideIn 0.5s ease-out forwards; /* Animação de entrada */
+}
+
+/* Cores por tipo */
+.toast-success { background-color: #2ecc71; }
+.toast-error { background-color: #e74c3c; }
+.toast-info { background-color: #3498db; }
+
+/* Animação de entrada (da direita para esquerda) */
+@keyframes slideIn {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Classe para saída suave */
+.toast-fade-out {
+    animation: fadeOut 0.5s ease-in forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(20px); }
+}

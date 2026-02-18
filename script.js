@@ -179,7 +179,8 @@ document.addEventListener("DOMContentLoaded", function () {
                         carregarClientes(); // Recarrega a lista após exclusão
                     } catch (error) {
                         console.error("Erro:", error);
-                        alert("Erro ao excluir cliente.");
+                        //alert("Erro ao excluir cliente.");
+                        showToast("Erro ao excluir cliente.", "error");
 
                         // Se der erro, temos que voltar o botão ao normal
                         btnExcluir.textContent = textoOriginal;
@@ -241,7 +242,8 @@ document.addEventListener("DOMContentLoaded", function () {
                     if (headerTitulo) headerTitulo.textContent = "Editar Cliente";
                     btnSalvar.textContent = "ATUALIZAR";
                 } catch (error) {
-                    alert("Falha ao carregar cliente para edição.");
+                    //alert("Falha ao carregar cliente para edição.");
+                    showToast("Falha ao carregar cliente para edição.", "error");
                     console.error("Erro:", error);
                 }
             })();
@@ -264,11 +266,12 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("2. Pegou os dados. Data digitada:", data); // analise 2
 
             // Validações básicas e obrigatórias
-            if (!nome) return alert("O nome é obrigatório.");
-            if (!email || !validaEmail(email)) return alert("Por favor, insira um email válido.");
-            if (!cpf || !validaCPF(cpf)) return alert("CPF inválido");
-            if (!data) return alert("A data de nascimento é obrigatória."); 
-            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return alert("Data deve estar no formato dd/mm/aaaa");
+            //if (!nome) return alert("O nome é obrigatório.");
+            if (!nome) return showToast("O nome é obrigatório.", "error");
+            if (!email || !validaEmail(email)) return showToast("Por favor, insira um email válido.", "error");
+            if (!cpf || !validaCPF(cpf)) return showToast("CPF inválido.", "error");
+            if (!data) return showToast("A data de nascimento é obrigatória.", "error"); 
+            if (!/^\d{2}\/\d{2}\/\d{4}$/.test(data)) return showToast("Data deve estar no formato dd/mm/aaaa.", "error");
 
             console.log("3. Passou pelas validações básicas! Indo calcular a idade..."); // analise 3
 
@@ -278,7 +281,7 @@ document.addEventListener("DOMContentLoaded", function () {
             console.log("4. A idade calculada foi:", idadeCalculada); // analise 4
 
             if (idadeCalculada < 18) {
-                return alert("Cliente deve ter no mínimo 18 anos de idade para se cadastrar.");
+                return showToast("Cliente deve ter no mínimo 18 anos de idade para se cadastrar.", "error");
             }
             // --- Fim do desafio 1.3 ---
 
@@ -313,12 +316,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Verifica se é uma tentativa de duplicata (ID diferente do que estamos editando, ou um novo cadastro)
                     if (clienteExistente.id != idExistente) {
                         console.error("4. CPF Duplicado detectado! Bloqueando salvamento."); // <-- Analise DE ERRO
-                        return alert("Erro: Este CPF já está cadastrado no sistema para outro cliente!");
+                        return showToast("Erro: Este CPF já está cadastrado no sistema para outro cliente!", "error");
                     }
                 }
             } catch (erroBusca) {
                 console.error("Erro ao verificar CPF duplicado:", erroBusca);
-                return alert("Erro ao verificar o CPF no servidor.");
+                return showToast("Erro ao verificar o CPF no servidor.", "error");
             }
             // --- FIM DO DESAFIO 1.1 --- 
 
@@ -340,8 +343,10 @@ document.addEventListener("DOMContentLoaded", function () {
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)
                 });
+                
                 if (!resposta.ok) throw new Error("Erro ao salvar");
-                alert(idExistente ? "Cliente atualizado!" : "Cliente salvo com sucesso!");
+                showToast(idExistente ? "Cliente atualizado!" : "Cliente salvo com sucesso!", "success");
+                
                 if (!idExistente) {
                     // Limpa os campos para um novo cadastro
                     nomeCompletoInput.value = "";
@@ -351,7 +356,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     dataNascInput.value = "";
                 }
             } catch (error) {
-                alert("Falha ao salvar cliente. Verifique console");
+                showToast("Falha ao salvar cliente. Verifique console", "error");
                 console.error("Erro:", error);
             } finally {
                 // Reset do loading (independente de sucesso ou falha)
@@ -444,4 +449,30 @@ function calcularIdade(dataNascimentoBR) {
     }
 
     return idade;
+}
+
+/**
+ * Mostra uma notificação Toast na tela
+ * @param {string} mensagem - Texto a ser exibido
+ * @param {string} tipo - 'success', 'error' ou 'info'
+ */
+function showToast(mensagem, tipo = 'success') {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    // Cria o elemento do toast
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${tipo}`;
+    toast.textContent = mensagem;
+
+    // Adiciona ao container
+    container.appendChild(toast);
+
+    // Remove automaticamente após 3 segundos
+    setTimeout(() => {
+        toast.classList.add('toast-fade-out'); // Começa animação de saída
+        toast.addEventListener('animationend', () => {
+            toast.remove(); // Remove do HTML quando a animação acabar
+        });
+    }, 3000);
 }
