@@ -1,6 +1,12 @@
 // script.js
+const API_URL = "http://localhost:3000/clientes";
+let paginaAtual = 1;
+let limitePorPagina = 10;
+let totalDeClientes = 0;
+let foiSalvo = false; // Variável para controle de aviso de dados não salvos
+
+
 document.addEventListener("DOMContentLoaded", function () {
-    const API_URL = "http://localhost:3000/clientes";
 
     // --- SELETORES GERAIS ---
     const clientesContainer = document.getElementById("clientes-container");
@@ -82,19 +88,54 @@ document.addEventListener("DOMContentLoaded", function () {
 
     if (clientesContainer) {
         async function carregarClientes(filtros = {}) {
-            clientesContainer.innerHTML = `<div class="table-row"><div class="col" style="grid-column: span 6; text-align: center;">⏳ Carregando...</div></div>`;
+            clientesContainer.innerHTML = "Carregando...";
+
             try {
                 const params = new URLSearchParams();
+                // Paginação do JSON SERVER
+                params.append("_page", paginaAtual);
+                params.append("_limit", limitePorPagina);
+
                 if (filtros.nome) params.append("nome_like", filtros.nome);
                 if (filtros.cpf) params.append("cpf", filtros.cpf);
 
-                const url = params.toString() ? `${API_URL}?${params.toString()}` : API_URL;
+                const url = `${API_URL}?${params.toString()}`;
                 const resposta = await fetch(url);
+
+                // Critério de aceite: Total de registros
+                // O json-server envia o total no cabeçalho 'X-Total-Count'
+                totalDeClientes = resposta.headers.get("X-Total-Count");
+
                 const dados = await resposta.json();
                 renderClientes(dados);
+                atualizarControlesPaginacao();
             } catch (error) {
-                showToast("Erro ao carregar dados.", "error");
+                showToast("Erro ao carregar lista.", "error");
             }
+        }
+
+        document.getElementById("btn-anterior").addEventListener("click", () => {
+            if (paginaAtual > 1) {
+                paginaAtual--;
+                carregarClientes();
+            }
+        });
+
+        document.getElementById("btn-proximo").addEventListener("click", () => {
+            const totalPaginas = Math.ceil(totalDeClientes / limitePorPagina);
+            if (paginaAtual < totalPaginas) {
+                paginaAtual++;
+                carregarClientes();
+            }
+        });
+
+        function atualizarControlesPaginacao() {
+            const totalPaginas = Math.ceil(totalDeClientes / limitePorPagina) || 1;
+            document.getElementById("info-paginas").textContent = `Página ${paginaAtual} de ${totalPaginas} (${totalDeClientes} registros)`;
+
+            // Critério de aceite: Desabilitar botões nos limites
+            document.getElementById("btn-anterior").disabled = (paginaAtual === 1);
+            document.getElementById("btn-proximo").disabled = (paginaAtual === totalPaginas);
         }
 
         function renderClientes(lista) {
@@ -115,6 +156,7 @@ document.addEventListener("DOMContentLoaded", function () {
         // Eventos de Busca e Limpar
         if (botaoBuscar) {
             botaoBuscar.addEventListener("click", () => {
+                paginaAtual = 1; // RESET OBRIGATÓRIO AQUI
                 carregarClientes({
                     nome: document.getElementById("nome").value.trim(),
                     cpf: document.getElementById("cpf").value.trim()
@@ -149,8 +191,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
     // --- 3. LÓGICA DA TELA DE CADASTRO/EDIÇÃO ---
-
-    let foiSalvo = false; // Variável para controle de aviso de dados não salvos
 
     if (btnSalvar) {
         const params = new URLSearchParams(window.location.search);
@@ -300,7 +340,7 @@ function showToast(mensagem, tipo = 'success') {
 async function buscarCEP(cep) {
     const valor = cep.replace(/\D/g, "");
     const url = `https://viacep.com.br/ws/${valor}/json/`;
-    
+
     showToast("Buscando endereço...", "info");
 
     try {

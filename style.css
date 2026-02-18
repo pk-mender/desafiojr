@@ -57,7 +57,8 @@ body {
     justify-content: flex-end;
 }
 
-.search-form button, .search-form a.btn-novo {
+.search-form button,
+.search-form a.btn-novo {
     padding: 8px 15px;
     border: 1px solid #ccc;
     background-color: #f0f0f0;
@@ -70,20 +71,20 @@ body {
     border: 1px solid #ccc;
 }
 
-.table-header, 
-.table-row{
+.table-header,
+.table-row {
     display: grid;
     grid-template-columns: 2fr 1.5fr 1fr 1.5fr 1.5fr 1.5fr;
     border-bottom: 1px solid #ccc;
     background-color: #f9f9f9;
 }
 
-.table-header{
+.table-header {
     background-color: #f0f0f0;
     font-weight: bold;
 }
 
-.table-row:nth-child(even) { 
+.table-row:nth-child(even) {
     background-color: #fefefe;
 }
 
@@ -95,6 +96,7 @@ body {
 .col:last-child {
     border-right: none;
 }
+
 .col-acoes {
     display: flex;
     gap: 5px;
@@ -164,16 +166,38 @@ body {
     cursor: pointer;
 }
 
+/*Estilo paginação*/
+.pagination-controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.pagination-controls button {
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+#info-paginas {
+    font-weight: bold;
+}
+
 /* Estilo para o botão Limpar */
 .btn-limpar {
-    background-color: #e0e0e0; /* Cinza claro para indicar ação secundária */
+    background-color: #e0e0e0;
+    /* Cinza claro para indicar ação secundária */
     color: #333;
     border: 1px solid #ccc;
     font-weight: bold;
 }
 
 .btn-limpar:hover {
-    background-color: #d0d0d0; /* Escurece um pouco ao passar o mouse */
+    background-color: #d0d0d0;
+    /* Escurece um pouco ao passar o mouse */
     border-color: #bbb;
 }
 
@@ -213,22 +237,38 @@ body {
     border-radius: 4px;
     color: white;
     font-weight: bold;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     display: flex;
     align-items: center;
     justify-content: space-between;
-    animation: slideIn 0.5s ease-out forwards; /* Animação de entrada */
+    animation: slideIn 0.5s ease-out forwards;
+    /* Animação de entrada */
 }
 
 /* Cores por tipo */
-.toast-success { background-color: #2ecc71; }
-.toast-error { background-color: #e74c3c; }
-.toast-info { background-color: #3498db; }
+.toast-success {
+    background-color: #2ecc71;
+}
+
+.toast-error {
+    background-color: #e74c3c;
+}
+
+.toast-info {
+    background-color: #3498db;
+}
 
 /* Animação de entrada (da direita para esquerda) */
 @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
 }
 
 /* Classe para saída suave */
@@ -237,6 +277,13 @@ body {
 }
 
 @keyframes fadeOut {
-    from { opacity: 1; transform: translateX(0); }
-    to { opacity: 0; transform: translateX(20px); }
+    from {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    to {
+        opacity: 0;
+        transform: translateX(20px);
+    }
 }
