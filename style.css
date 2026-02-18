@@ -177,6 +177,19 @@ body {
     border-color: #bbb;
 }
 
+.btn-voltar {
+    display: inline-block;
+    margin-bottom: 15px;
+    text-decoration: none;
+    color: #666;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+.btn-voltar:hover {
+    color: #000;
+}
+
 /* dados invalidos */
 
 .invalid-input {
