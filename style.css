@@ -164,6 +164,19 @@ body {
     cursor: pointer;
 }
 
+/* Estilo para o botão Limpar */
+.btn-limpar {
+    background-color: #e0e0e0; /* Cinza claro para indicar ação secundária */
+    color: #333;
+    border: 1px solid #ccc;
+    font-weight: bold;
+}
+
+.btn-limpar:hover {
+    background-color: #d0d0d0; /* Escurece um pouco ao passar o mouse */
+    border-color: #bbb;
+}
+
 /* dados invalidos */
 
 .invalid-input {
